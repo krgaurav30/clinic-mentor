@@ -626,7 +626,8 @@ async function handleSendMessage(e) {
     
     // Append PDF text if it exists
     if (pdfText) {
-        text += `\n\n[Attached File: ${fileName}]\n${pdfText}`;
+        const userNote = text ? `${text}\n\n` : '';
+        text = `${userNote}The doctor uploaded a PDF named "${fileName}". The browser has already extracted the readable text from that PDF below. Use this extracted text for your clinical reasoning. Do not say you cannot view PDF files.\n\n--- Extracted PDF Text Start ---\n${pdfText}\n--- Extracted PDF Text End ---`;
     }
     
     // Construct user message payload
