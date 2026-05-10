@@ -16,7 +16,28 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="app-locked">
+
+    <!-- Temporary Login Gate -->
+    <section class="login-screen" id="login-screen">
+        <form class="login-card" id="login-form">
+            <div class="login-brand">
+                <i class="ph ph-stethoscope icon-large"></i>
+                <h1>Clinic Mentor</h1>
+                <p>Sign in to continue</p>
+            </div>
+            <div class="form-group">
+                <label for="login-username">Username</label>
+                <input type="text" id="login-username" autocomplete="username" placeholder="Username">
+            </div>
+            <div class="form-group">
+                <label for="login-otp">OTP</label>
+                <input type="password" id="login-otp" inputmode="numeric" autocomplete="one-time-code" placeholder="Enter OTP">
+            </div>
+            <p class="login-error" id="login-error" aria-live="polite"></p>
+            <button type="submit" class="btn-primary login-submit">Login</button>
+        </form>
+    </section>
 
     <!-- Sidebar for Patient Records -->
     <aside class="sidebar" id="sidebar">
@@ -30,6 +51,10 @@
                     <i class="ph ph-x"></i>
                 </button>
             </div>
+        </div>
+        <div class="patient-search">
+            <i class="ph ph-magnifying-glass"></i>
+            <input type="search" id="patient-search-input" placeholder="Search name or mobile">
         </div>
         <div class="patient-list" id="patient-list">
             <!-- Patient items will be injected here via JS -->
@@ -46,6 +71,9 @@
                 <h1>Clinic Mentor</h1>
                 <span class="subtitle" id="current-patient-name">No Patient Selected</span>
             </div>
+            <button id="logout-btn" class="icon-btn logout-btn" title="Logout">
+                <i class="ph ph-sign-out"></i>
+            </button>
         </header>
 
         <div class="chat-container" id="chat-container">

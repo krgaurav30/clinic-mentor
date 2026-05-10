@@ -1,6 +1,12 @@
+const AUTH_USERNAME = 'avy';
+const AUTH_OTP = '977133';
+const AUTH_STORAGE_KEY = 'clinicMentorAuthenticated';
+
 const SYSTEM_PROMPT = `You are an experienced senior community and family physician advisor with over 30 years of practical primary care experience. Your purpose is to help a junior doctor running a pharmacy and primary clinic think through patient cases systematically and safely. You are not speaking directly to patients; you are guiding the doctor.
 
-You should conduct clinical history-taking in a structured but conversational way. Ask only one focused question at a time. Every next question must depend on the previous answer so the diagnostic reasoning progressively narrows toward the likely cause. When information is incomplete or uncertain, continue drilling down with clarifying questions one at a time.
+You must conduct clinical history-taking in a structured but conversational way. During history-taking, ask exactly one focused question in each assistant reply. Do not ask multiple questions, do not use a checklist of questions, and do not combine several questions with "and/or". Every next question must clearly refer to the doctor's previous answer and use that answer to narrow the diagnostic reasoning. When information is incomplete or uncertain, continue drilling down with one question at a time.
+
+If emergency red flags are already apparent, first advise urgent referral clearly, then ask no more than one immediate safety-related follow-up question if it is necessary.
 
 You should help identify the most likely primary disease patterns, common differential diagnoses, and potential next steps for assessment. Always prioritize patient safety and evidence-based reasoning. Clearly identify red flags such as chest pain with instability, stroke symptoms, breathing difficulty, severe dehydration, altered mental status, sepsis signs, uncontrolled bleeding, suicidal intent, severe abdominal pain, meningitis signs, high-risk pregnancy symptoms, or any emergency features. If red flags appear, strongly advise urgent referral to a hospital, emergency department, or relevant specialist.
 
@@ -35,6 +41,8 @@ let state = {
     attachedFileName: null
 };
 
+let appStarted = false;
+
 // Load state from localStorage
 function loadState() {
     const savedPatients = localStorage.getItem('clinicMentorPatients');
@@ -49,11 +57,20 @@ function saveState() {
 
 // --- DOM Elements ---
 const els = {
+    // Login
+    loginScreen: document.getElementById('login-screen'),
+    loginForm: document.getElementById('login-form'),
+    loginUsername: document.getElementById('login-username'),
+    loginOtp: document.getElementById('login-otp'),
+    loginError: document.getElementById('login-error'),
+    logoutBtn: document.getElementById('logout-btn'),
+
     // Sidebar
     sidebar: document.getElementById('sidebar'),
     toggleSidebarBtn: document.getElementById('toggle-sidebar-btn'),
     closeSidebarBtn: document.getElementById('close-sidebar-btn'),
     newPatientBtn: document.getElementById('new-patient-btn'),
+    patientSearchInput: document.getElementById('patient-search-input'),
     patientList: document.getElementById('patient-list'),
     
     // Main UI
@@ -86,6 +103,21 @@ els.toggleSidebarBtn = document.getElementById('toggle-sidebar-btn');
 
 // --- Setup & Initialization ---
 function init() {
+    setupAuthListeners();
+
+    if (!isAuthenticated()) {
+        showLogin();
+        return;
+    }
+
+    showApp();
+    startApp();
+}
+
+function startApp() {
+    if (appStarted) return;
+    appStarted = true;
+
     loadState();
     setupEventListeners();
     renderPatientList();
@@ -105,11 +137,55 @@ function init() {
     });
 }
 
+function setupAuthListeners() {
+    els.loginForm.addEventListener('submit', handleLogin);
+    els.logoutBtn.addEventListener('click', handleLogout);
+}
+
+function isAuthenticated() {
+    return localStorage.getItem(AUTH_STORAGE_KEY) === 'true';
+}
+
+function showLogin() {
+    document.body.classList.add('app-locked');
+    els.loginError.textContent = '';
+    els.loginUsername.focus();
+}
+
+function showApp() {
+    document.body.classList.remove('app-locked');
+}
+
+function handleLogin(e) {
+    e.preventDefault();
+
+    const username = els.loginUsername.value.trim().toLowerCase();
+    const otp = els.loginOtp.value.trim();
+
+    if (username === AUTH_USERNAME && otp === AUTH_OTP) {
+        localStorage.setItem(AUTH_STORAGE_KEY, 'true');
+        els.loginOtp.value = '';
+        showApp();
+        startApp();
+        return;
+    }
+
+    els.loginError.textContent = 'Invalid username or OTP.';
+    els.loginOtp.value = '';
+    els.loginOtp.focus();
+}
+
+function handleLogout() {
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    window.location.reload();
+}
+
 function setupEventListeners() {
     // New Patient
     els.newPatientBtn.addEventListener('click', openNewPatientModal);
     els.closeEditPatientBtn.addEventListener('click', closeModals);
     els.savePatientBtn.addEventListener('click', createNewPatient);
+    els.patientSearchInput.addEventListener('input', renderPatientList);
     
     // Input Resizing & Validation
     els.messageInput.addEventListener('input', handleInputResize);
@@ -177,6 +253,7 @@ function createNewPatient() {
     const newPatient = {
         id: newId,
         name: displayName,
+        phone,
         date: new Date().toISOString(),
         messages: [contextMsg]
     };
@@ -236,8 +313,27 @@ function closeModals() {
 
 function renderPatientList() {
     els.patientList.innerHTML = '';
-    
-    state.patients.forEach(patient => {
+    const searchTerm = els.patientSearchInput.value.trim().toLowerCase();
+    const normalizePhone = (value) => (value || '').replace(/\D/g, '');
+    const searchDigits = normalizePhone(searchTerm);
+    const filteredPatients = state.patients.filter(patient => {
+        if (!searchTerm) return true;
+
+        const patientName = (patient.name || '').toLowerCase();
+        const patientPhone = (patient.phone || '').toLowerCase();
+        const patientPhoneDigits = normalizePhone(patient.phone);
+
+        return patientName.includes(searchTerm)
+            || patientPhone.includes(searchTerm)
+            || (!!searchDigits && patientPhoneDigits.includes(searchDigits));
+    });
+
+    if (filteredPatients.length === 0) {
+        els.patientList.innerHTML = '<div class="empty-patient-search">No matching cases found.</div>';
+        return;
+    }
+
+    filteredPatients.forEach(patient => {
         const item = document.createElement('div');
         item.className = `patient-item ${patient.id === state.currentPatientId ? 'active' : ''}`;
         
