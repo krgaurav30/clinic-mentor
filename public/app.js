@@ -42,6 +42,7 @@ let state = {
 };
 
 let appStarted = false;
+let lastHandledFileKey = '';
 
 // Load state from localStorage
 function loadState() {
@@ -103,6 +104,7 @@ const els = {
     // Input
     chatForm: document.getElementById('chat-form'),
     messageInput: document.getElementById('message-input'),
+    attachBtn: document.getElementById('attach-btn'),
     sendBtn: document.getElementById('send-btn'),
     fileUpload: document.getElementById('file-upload'),
     imagePreviewContainer: document.getElementById('image-preview-container'),
@@ -231,11 +233,28 @@ function setupEventListeners() {
     }
 
     // File Upload
+    els.attachBtn.addEventListener('click', openFilePicker);
+    els.fileUpload.addEventListener('click', () => {
+        els.fileUpload.value = '';
+        lastHandledFileKey = '';
+    });
+    els.fileUpload.addEventListener('input', handleFileUpload);
     els.fileUpload.addEventListener('change', handleFileUpload);
     els.removeImageBtn.addEventListener('click', removeFile);
     
     // Form Submit
     els.chatForm.addEventListener('submit', handleSendMessage);
+}
+
+function openFilePicker() {
+    if (!state.currentPatientId) {
+        alert("Please select or create a patient case before uploading a file.");
+        return;
+    }
+
+    els.fileUpload.value = '';
+    lastHandledFileKey = '';
+    els.fileUpload.click();
 }
 
 // --- Logic & Actions ---
@@ -481,6 +500,10 @@ function handleInputResize() {
 async function handleFileUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
+
+    const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
+    if (fileKey === lastHandledFileKey) return;
+    lastHandledFileKey = fileKey;
     
     state.attachedFileName = file.name;
 

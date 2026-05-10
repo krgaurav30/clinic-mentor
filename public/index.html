@@ -93,10 +93,10 @@
                 <button id="remove-image-btn" class="icon-btn remove-btn"><i class="ph ph-x"></i></button>
             </div>
             <form id="chat-form" class="chat-form">
-                <label for="file-upload" class="icon-btn attach-btn" title="Attach Image or PDF">
+                <button type="button" id="attach-btn" class="icon-btn attach-btn" title="Attach Image or PDF">
                     <i class="ph ph-paperclip"></i>
-                    <input type="file" id="file-upload" accept="image/*,application/pdf" hidden>
-                </label>
+                </button>
+                <input type="file" id="file-upload" class="file-upload-input" accept="image/*,application/pdf,.pdf,.jpg,.jpeg,.png,.webp,.gif,.bmp">
                 <textarea id="message-input" placeholder="Type a message or describe symptoms..." rows="1"></textarea>
                 <button type="submit" id="send-btn" class="icon-btn send-btn" disabled>
                     <i class="ph ph-paper-plane-right"></i>
