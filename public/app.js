@@ -52,7 +52,28 @@ function loadState() {
 }
 
 function saveState() {
-    localStorage.setItem('clinicMentorPatients', JSON.stringify(state.patients));
+    const patientsForStorage = state.patients.map(patient => ({
+        ...patient,
+        messages: patient.messages.map(stripLargeAttachmentsForStorage)
+    }));
+
+    localStorage.setItem('clinicMentorPatients', JSON.stringify(patientsForStorage));
+}
+
+function stripLargeAttachmentsForStorage(message) {
+    if (!Array.isArray(message.content)) return message;
+
+    return {
+        ...message,
+        content: message.content.map(part => {
+            if (part.type !== 'image_url') return part;
+
+            return {
+                type: 'text',
+                text: '[Image was attached in this message.]'
+            };
+        })
+    };
 }
 
 // --- DOM Elements ---
@@ -493,20 +514,65 @@ async function handleFileUpload(e) {
             alert("Failed to read PDF.");
             removeFile();
         }
-    } else if (file.type.startsWith('image/')) {
+    } else if (isImageFile(file)) {
         // Handle Image
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            state.attachedImageBase64 = event.target.result;
+        try {
+            state.attachedImageBase64 = await readImageForUpload(file);
             els.imagePreview.src = state.attachedImageBase64;
             els.imagePreviewContainer.style.display = 'inline-block';
             validateSendBtn();
-        };
-        reader.readAsDataURL(file);
+        } catch (err) {
+            console.error(err);
+            alert("Failed to read this image. Please try a JPG, PNG, or WebP image.");
+            removeFile();
+        }
     } else {
-        alert("Unsupported file type.");
+        alert("Unsupported file type. Please upload a PDF, JPG, PNG, or WebP image.");
         removeFile();
     }
+}
+
+function isImageFile(file) {
+    const imageExtensions = /\.(jpe?g|png|webp|gif|bmp)$/i;
+    return file.type.startsWith('image/') || imageExtensions.test(file.name);
+}
+
+function readFileAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(reader.error || new Error('Unable to read file.'));
+        reader.readAsDataURL(file);
+    });
+}
+
+async function readImageForUpload(file) {
+    const dataUrl = await readFileAsDataUrl(file);
+
+    if (file.type === 'image/gif' || file.type === 'image/svg+xml') {
+        return dataUrl;
+    }
+
+    return compressImageDataUrl(dataUrl);
+}
+
+function compressImageDataUrl(dataUrl) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+            const maxSide = 1600;
+            const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.max(1, Math.round(img.width * scale));
+            canvas.height = Math.max(1, Math.round(img.height * scale));
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', 0.85));
+        };
+        img.onerror = () => resolve(dataUrl);
+        img.src = dataUrl;
+    });
 }
 
 function removeFile() {
