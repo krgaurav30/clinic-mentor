@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinic Mentor Copilot</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons for elegant UI icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- PDF.js for PDF text extraction -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- Sidebar for Patient Records -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>Patients</h2>
+            <button id="new-patient-btn" class="btn-primary" title="New Case">
+                <i class="ph ph-plus"></i> New
+            </button>
+        </div>
+        <div class="patient-list" id="patient-list">
+            <!-- Patient items will be injected here via JS -->
+        </div>
+    </aside>
+
+    <!-- Main Chat Area -->
+    <main class="main-content">
+        <header class="app-header">
+            <button id="toggle-sidebar-btn" class="icon-btn mobile-only">
+                <i class="ph ph-list"></i>
+            </button>
+            <div class="header-title">
+                <h1>Clinic Mentor</h1>
+                <span class="subtitle" id="current-patient-name">No Patient Selected</span>
+            </div>
+        </header>
+
+        <div class="chat-container" id="chat-container">
+            <div class="welcome-screen" id="welcome-screen">
+                <i class="ph ph-stethoscope icon-large"></i>
+                <h2>Welcome to Clinic Mentor</h2>
+                <p>Select a patient or start a new case to begin.</p>
+            </div>
+            <div class="chat-history" id="chat-history">
+                <!-- Chat messages will appear here -->
+            </div>
+        </div>
+
+        <div class="input-area" id="input-area">
+            <div class="image-preview-container" id="image-preview-container" style="display: none;">
+                <img id="image-preview" src="" alt="Preview">
+                <button id="remove-image-btn" class="icon-btn remove-btn"><i class="ph ph-x"></i></button>
+            </div>
+            <form id="chat-form" class="chat-form">
+                <label for="file-upload" class="icon-btn attach-btn" title="Attach Image or PDF">
+                    <i class="ph ph-paperclip"></i>
+                    <input type="file" id="file-upload" accept="image/*,application/pdf" hidden>
+                </label>
+                <textarea id="message-input" placeholder="Type a message or describe symptoms..." rows="1"></textarea>
+                <button type="submit" id="send-btn" class="icon-btn send-btn" disabled>
+                    <i class="ph ph-paper-plane-right"></i>
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <!-- Edit Patient Name Modal -->
+    <div class="modal-overlay" id="edit-patient-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>New Patient Details</h3>
+                <button id="close-edit-patient-btn" class="icon-btn"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="patient-name-input">Patient Name *</label>
+                    <input type="text" id="patient-name-input" placeholder="e.g. John Doe">
+                </div>
+                <div style="display: flex; gap: 12px; margin-top: 12px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label for="patient-age-input">Age *</label>
+                        <input type="number" id="patient-age-input" placeholder="e.g. 45" style="width: 100%; padding: 12px; border-radius: var(--radius-md); background-color: var(--bg-dark); border: 1px solid var(--border-color); color: var(--text-main); font-family: inherit;">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label for="patient-gender-input">Gender *</label>
+                        <select id="patient-gender-input" style="width: 100%; padding: 12px; border-radius: var(--radius-md); background-color: var(--bg-dark); border: 1px solid var(--border-color); color: var(--text-main); font-family: inherit; appearance: none;">
+                            <option value="">Select</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label for="patient-weight-input">Weight (kg) *</label>
+                        <input type="number" id="patient-weight-input" placeholder="e.g. 70" style="width: 100%; padding: 12px; border-radius: var(--radius-md); background-color: var(--bg-dark); border: 1px solid var(--border-color); color: var(--text-main); font-family: inherit;">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top: 12px;">
+                    <label for="patient-phone-input">Phone Number (Optional)</label>
+                    <input type="text" id="patient-phone-input" placeholder="e.g. +1 234 567 8900">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="save-patient-btn" class="btn-primary">Create Case</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
