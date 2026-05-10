@@ -30,7 +30,10 @@ body {
     background-color: var(--bg-dark);
     color: var(--text-main);
     display: flex;
-    height: 100vh;
+    width: 100%;
+    min-width: 0;
+    height: 100vh; /* fallback */
+    height: 100dvh; /* standard for modern mobile browsers */
     overflow: hidden;
 }
 
@@ -103,6 +106,7 @@ input[type="text"]:focus, input[type="password"]:focus {
 /* Layout */
 .sidebar {
     width: 280px;
+    max-width: 100vw;
     background-color: var(--bg-panel);
     border-right: 1px solid var(--border-color);
     display: flex;
@@ -117,6 +121,10 @@ input[type="text"]:focus, input[type="password"]:focus {
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid var(--border-color);
+}
+
+.close-sidebar-btn {
+    display: none;
 }
 
 .patient-list {
@@ -190,6 +198,8 @@ input[type="text"]:focus, input[type="password"]:focus {
 /* Main Content */
 .main-content {
     flex: 1;
+    min-width: 0;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     position: relative;
@@ -212,11 +222,15 @@ input[type="text"]:focus, input[type="password"]:focus {
 .header-title {
     display: flex;
     flex-direction: column;
+    min-width: 0;
 }
 
 .subtitle {
     font-size: 0.8rem;
     color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .mobile-only {
@@ -226,6 +240,7 @@ input[type="text"]:focus, input[type="password"]:focus {
 /* Chat Area */
 .chat-container {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
     padding: 24px;
     display: flex;
@@ -264,6 +279,7 @@ input[type="text"]:focus, input[type="password"]:focus {
     display: flex;
     gap: 16px;
     max-width: 85%;
+    min-width: 0;
     animation: slideUp 0.3s ease forwards;
     opacity: 0;
     transform: translateY(10px);
@@ -319,6 +335,9 @@ input[type="text"]:focus, input[type="password"]:focus {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     font-size: 0.95rem;
     line-height: 1.6;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .message.user .message-content {
@@ -389,6 +408,7 @@ input[type="text"]:focus, input[type="password"]:focus {
     transition: var(--transition);
     max-width: 800px;
     margin: 0 auto;
+    min-width: 0;
 }
 
 .chat-form:focus-within {
@@ -398,6 +418,7 @@ input[type="text"]:focus, input[type="password"]:focus {
 
 textarea {
     flex: 1;
+    min-width: 0;
     background: transparent;
     border: none;
     color: var(--text-main);
@@ -492,6 +513,8 @@ textarea::placeholder {
     background-color: var(--bg-panel);
     width: 90%;
     max-width: 450px;
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
     border-radius: var(--radius-lg);
     border: 1px solid var(--border-color);
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
@@ -540,13 +563,30 @@ textarea::placeholder {
     justify-content: flex-end;
 }
 
+.patient-detail-grid {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.patient-detail-grid .form-group {
+    flex: 1;
+    min-width: 0;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
+    body {
+        position: fixed;
+        inset: 0;
+    }
+
     .sidebar {
-        position: absolute;
+        position: fixed;
         top: 0;
         left: 0;
         bottom: 0;
+        width: min(86vw, 320px);
         z-index: 50;
         transform: translateX(-100%);
     }
@@ -556,11 +596,97 @@ textarea::placeholder {
         box-shadow: 10px 0 15px -3px rgba(0, 0, 0, 0.5);
     }
     
+    .close-sidebar-btn {
+        display: block;
+        margin-left: 10px;
+    }
+    
     .mobile-only {
         display: flex;
     }
+
+    .app-header {
+        height: 60px;
+        padding: 0 12px;
+        gap: 12px;
+        justify-content: flex-start;
+    }
+
+    .header-title h1 {
+        font-size: 1.05rem;
+    }
+
+    .chat-container {
+        padding: 16px 12px;
+    }
     
     .message {
+        gap: 10px;
         max-width: 95%;
+    }
+
+    .message-avatar {
+        width: 30px;
+        height: 30px;
+        font-size: 1rem;
+    }
+
+    .message-content {
+        padding: 12px 14px;
+        font-size: 0.9rem;
+    }
+
+    .input-area {
+        padding: 12px;
+    }
+
+    .chat-form {
+        gap: 6px;
+        padding: 6px 8px;
+    }
+
+    .icon-btn {
+        width: 36px;
+        height: 36px;
+        flex: 0 0 36px;
+    }
+
+    textarea {
+        font-size: 16px;
+        max-height: 112px;
+    }
+
+    .patient-detail-grid {
+        flex-direction: column;
+    }
+
+    .modal {
+        width: calc(100vw - 24px);
+    }
+
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+}
+
+@media (max-width: 420px) {
+    .message {
+        max-width: 100%;
+    }
+
+    .message.ai {
+        padding-right: 4px;
+    }
+
+    .message.user {
+        padding-left: 4px;
+    }
+
+    .welcome-screen {
+        padding: 0 12px;
+        text-align: center;
     }
 }

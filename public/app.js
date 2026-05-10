@@ -51,7 +51,8 @@ function saveState() {
 const els = {
     // Sidebar
     sidebar: document.getElementById('sidebar'),
-    toggleSidebarBtn: document.getElementById('toggleSidebarBtn'), // typo in html: id="toggle-sidebar-btn"
+    toggleSidebarBtn: document.getElementById('toggle-sidebar-btn'),
+    closeSidebarBtn: document.getElementById('close-sidebar-btn'),
     newPatientBtn: document.getElementById('new-patient-btn'),
     patientList: document.getElementById('patient-list'),
     
@@ -110,11 +111,6 @@ function setupEventListeners() {
     els.closeEditPatientBtn.addEventListener('click', closeModals);
     els.savePatientBtn.addEventListener('click', createNewPatient);
     
-    // Sidebar Mobile Toggle
-    els.toggleSidebarBtn.addEventListener('click', () => {
-        els.sidebar.classList.toggle('open');
-    });
-    
     // Input Resizing & Validation
     els.messageInput.addEventListener('input', handleInputResize);
     els.messageInput.addEventListener('keydown', (e) => {
@@ -124,6 +120,19 @@ function setupEventListeners() {
         }
     });
     
+    // Mobile Sidebar Toggle
+    if (els.toggleSidebarBtn && els.sidebar) {
+        els.toggleSidebarBtn.addEventListener('click', () => {
+            els.sidebar.classList.toggle('open');
+        });
+    }
+    
+    if (els.closeSidebarBtn && els.sidebar) {
+        els.closeSidebarBtn.addEventListener('click', () => {
+            els.sidebar.classList.remove('open');
+        });
+    }
+
     // File Upload
     els.fileUpload.addEventListener('change', handleFileUpload);
     els.removeImageBtn.addEventListener('click', removeFile);
@@ -202,7 +211,7 @@ function updateUIForNoPatient() {
     els.chatHistory.style.display = 'none';
     els.sendBtn.disabled = true;
     els.messageInput.disabled = true;
-    els.imageUpload.disabled = true;
+    els.fileUpload.disabled = true;
 }
 
 function checkInputEnabled() {
